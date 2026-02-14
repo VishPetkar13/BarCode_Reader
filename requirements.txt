@@ -1,3 +1,5 @@
 pyzbar
 numpy
 opencv-python
+flet
+pillow

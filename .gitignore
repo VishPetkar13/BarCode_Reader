@@ -1,2 +1,4 @@
 # Virtual Environment
 barenv/
+.idea/
+.vscode/
