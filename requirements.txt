@@ -1,5 +1,5 @@
 pyzbar
 numpy
 opencv-python
-flet
+flet == 0.19.0
 pillow

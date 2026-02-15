@@ -74,9 +74,9 @@ def main(page: ft.Page):
         img, 
         barcodeText, 
         ft.Row([
-            ft.Button("Start", on_click=startCamera), 
-            ft.Button("Stop", on_click=stopCamera) 
+            ft.ElevatedButton("Start", on_click=startCamera), 
+            ft.ElevatedButton("Stop", on_click=stopCamera)  
             ])
     )
 
-ft.run(main)
+ft.app(target=main)
