@@ -6,6 +6,7 @@ import base64
 import time
 from io import BytesIO
 from PIL import Image
+from database import init_db
 
 stopEvent = threading.Event()
 
@@ -47,6 +48,7 @@ def videoLoop(imgControl, barcodeText, page):
     cap.release()
 
 def main(page: ft.Page):
+    init_db()
     page.window_width = 640
     page.window_height = 800
 
