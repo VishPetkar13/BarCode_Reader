@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime
 
 def init_db():
     conn = sqlite3.connect("barcode_history.db")
@@ -7,11 +8,27 @@ def init_db():
     cursor.execute("""
                    CREATE TABLE IF NOT EXISTS scanned_items (
                    id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                   barcode_value TEXT NOT NULL,
+                   barcode_value TEXT NOT NULL UNIQUE,
                    barcode_type TEXT NOT NULL,
                    user_label TEXT, 
                    scan_time TEXT NOT NULL
                    )
                    """)
     conn.commit()
+    conn.close()
+
+def save_scan(barcode_value, barcode_type):
+    conn = sqlite3.connect("barcode_history.db")
+    cursor = conn.cursor()
+
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    try:
+        cursor.execute("""
+                   INSERT INTO scanned_items (barcode_value, barcode_type, scan_time)
+                   VALUES (?, ?, ?)""", (barcode_value, barcode_type, timestamp))
+        conn.commit()
+    
+    except sqlite3.IntegrityError:
+        pass # if barcode already exists, then ignore it
     conn.close()

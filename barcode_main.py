@@ -1,4 +1,5 @@
 from pyzbar import pyzbar
+from pyzbar.pyzbar import ZBarSymbol
 import cv2 as cv
 import flet as ft 
 import threading
@@ -7,10 +8,12 @@ import time
 from io import BytesIO
 from PIL import Image
 from database import init_db
+from database import save_scan
+
 
 stopEvent = threading.Event()
 
-barcodes = set()
+#barcodes = set() #not needed anymore 
 
 def openCVToBase64(frame):
     """ This function will take in a frame from the camera (opencv) and 
@@ -24,10 +27,36 @@ def openCVToBase64(frame):
     return base64.b64encode(buffer.getvalue()).decode('utf-8')
 
 def readBarcode(frame):
-    readObj = pyzbar.decode(frame)
+    detected = []
+
+    gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+    gray = cv.GaussianBlur(gray, (5,5), 0)
+
+    _, thresh = cv.threshold(
+    gray,
+    0,
+    255,
+    cv.THRESH_BINARY + cv.THRESH_OTSU
+    )
+
+
+    readObj = pyzbar.decode(
+        thresh,
+        symbols=[
+            ZBarSymbol.EAN13,
+            ZBarSymbol.CODE128,
+            ZBarSymbol.QRCODE,
+            ZBarSymbol.UPCA,
+            ZBarSymbol.UPCE
+        ]
+    )
+
     for obj in readObj:
-        barcodes.add(obj.data.decode('utf-8'))
-    return barcodes
+        barcode_data = obj.data.decode('utf-8')
+        barcode_type = obj.type
+        detected.append((barcode_data, barcode_type))
+
+    return detected
 
 def videoLoop(imgControl, barcodeText, page):
     cap = cv.VideoCapture(0)
@@ -36,9 +65,14 @@ def videoLoop(imgControl, barcodeText, page):
         ret, frame = cap.read()
         if not ret:
             break
-        barcodes = readBarcode(frame)
-        if barcodes:
-            barcodeText.value = "\n".join(barcodes)
+        codes = readBarcode(frame)
+        if codes:
+            display_text = []
+            for barcode_value, barcode_type in codes:
+                save_scan(barcode_value, barcode_type)
+                display_text.append(f"{barcode_value} ({barcode_type})")
+
+            barcodeText.value = "\n".join(display_text)
         else:
             barcodeText.value="No Barcode Detected"
 
@@ -70,7 +104,7 @@ def main(page: ft.Page):
         stopEvent.set()
         barcodeText.value = "stopped"
         page.update()
-        print(barcodes)
+        #print(barcodes) # This line is not needed anymore
 
     page.add(
         img, 
