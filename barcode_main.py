@@ -1,5 +1,6 @@
-from pyzbar import pyzbar
-from pyzbar.pyzbar import ZBarSymbol
+# from pyzbar import pyzbar
+# from pyzbar.pyzbar import ZBarSymbol
+from pyzxing import BarCodeReader
 import cv2 as cv
 import flet as ft 
 import threading
@@ -12,7 +13,7 @@ from database import save_scan
 
 
 stopEvent = threading.Event()
-
+reader = BarCodeReader() #the startup for this is heavy on the system; so created once globally.
 #barcodes = set() #not needed anymore 
 
 def openCVToBase64(frame):
@@ -27,34 +28,23 @@ def openCVToBase64(frame):
     return base64.b64encode(buffer.getvalue()).decode('utf-8')
 
 def readBarcode(frame):
+     # save frame temporarily for ZXing
+    cv.imwrite("temp.jpg", frame)
+
+    results = reader.decode("temp.jpg")
+
     detected = []
 
-    gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-    gray = cv.GaussianBlur(gray, (5,5), 0)
+    if results:
+        for res in results:
+            if 'raw' in res and 'format' in res:
 
-    _, thresh = cv.threshold(
-    gray,
-    0,
-    255,
-    cv.THRESH_BINARY + cv.THRESH_OTSU
-    )
+                barcode_value = res['raw'].decode('utf-8')
+                barcode_type  = res['format'].decode('utf-8')
 
-
-    readObj = pyzbar.decode(
-        thresh,
-        symbols=[
-            ZBarSymbol.EAN13,
-            ZBarSymbol.CODE128,
-            ZBarSymbol.QRCODE,
-            ZBarSymbol.UPCA,
-            ZBarSymbol.UPCE
-        ]
-    )
-
-    for obj in readObj:
-        barcode_data = obj.data.decode('utf-8')
-        barcode_type = obj.type
-        detected.append((barcode_data, barcode_type))
+                # ignore partial short reads
+                if len(barcode_value) > 10:
+                    detected.append((barcode_value, barcode_type))
 
     return detected
 
