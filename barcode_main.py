@@ -94,7 +94,7 @@ def main(page: ft.Page):
     page.window_width = 640
     page.window_height = 800
 
-    barcodeImage = ft.Image(width=400, height=150, src="")
+    barcodeImage = ft.Image(width=400, height=150, src="placeholder.png")
     img = ft.Image(width=480, height=320, src="localhost/nothing.jpg")
     barcodeText = ft.Text("No barcode detected", size=16, selectable=True)
 
@@ -137,7 +137,7 @@ def main(page: ft.Page):
 
     def stopCamera(e):
         stopEvent.set()
-        barcodeText.value = "stopped"
+        barcodeText.value = "Stopped"
         page.update()
         #print(barcodes) # This line is not needed anymore
 
