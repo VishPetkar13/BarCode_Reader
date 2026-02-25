@@ -10,6 +10,7 @@ from io import BytesIO
 from PIL import Image
 from database import init_db
 from database import save_scan
+from database import update_label
 
 
 stopEvent = threading.Event()
@@ -122,6 +123,7 @@ def main(page: ft.Page):
 
             for barcode_value, barcode_type in codes:
                 save_scan(barcode_value, barcode_type)
+                ask_for_label(barcode_value)
                 display_text.append(f"{barcode_value} ({barcode_type})")
 
             barcodeText.value = "\n".join(display_text)
@@ -136,6 +138,30 @@ def main(page: ft.Page):
         barcodeText.value = "stopped"
         page.update()
         #print(barcodes) # This line is not needed anymore
+
+    
+    def ask_for_label(barcode_value):
+
+        def save_label(e):
+            label = input_field.value
+            update_label(barcode_value, label)
+            dialog.open = False
+            page.update()
+
+        input_field = ft.TextField(label="Enter Store name")
+
+        dialog = ft.AlertDialog(
+            title=ft.Text("Name this Bill"),
+            content=input_field,
+            actions=[
+                ft.TextButton("Save", on_click=save_label)
+            ]
+        )
+
+        page.dialog = dialog
+        dialog.open = True
+        page.update()
+
 
     page.add(
         img, 

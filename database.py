@@ -32,3 +32,17 @@ def save_scan(barcode_value, barcode_type):
     except sqlite3.IntegrityError:
         pass # if barcode already exists, then ignore it
     conn.close()
+
+def update_label(barcode_value, label):
+    conn = sqlite3.connect("barcode_history.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE scanned_items
+        SET user_label = ?
+        WHERE barcode_value = ?
+        """, (label, barcode_value))
+    
+    conn.commit()
+    conn.close()
+    
