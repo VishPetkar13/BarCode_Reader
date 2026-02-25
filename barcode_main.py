@@ -11,6 +11,7 @@ from PIL import Image
 from database import init_db
 from database import save_scan
 from database import update_label
+from barcode_generator import generate_barcode
 
 
 stopEvent = threading.Event()
@@ -93,6 +94,7 @@ def main(page: ft.Page):
     page.window_width = 640
     page.window_height = 800
 
+    barcodeImage = ft.Image(width=400, height=150, src="")
     img = ft.Image(width=480, height=320, src="localhost/nothing.jpg")
     barcodeText = ft.Text("No barcode detected", size=16, selectable=True)
 
@@ -162,13 +164,24 @@ def main(page: ft.Page):
         dialog.open = True
         page.update()
 
+    def showBarcode(e):
+        test_value = "00010521435150001121625005"
+        test_type  = "ITF"
+
+        img_base64 = generate_barcode(test_value, test_type)
+
+        if img_base64:
+            barcodeImage.src_base64 = img_base64
+            page.update()  
 
     page.add(
         img, 
-        barcodeText, 
+        barcodeText,
+        barcodeImage, 
         ft.Row([
             ft.ElevatedButton("Start", on_click=startCamera),
-            ft.ElevatedButton("Capture", on_click=captureBarcode), 
+            ft.ElevatedButton("Capture", on_click=captureBarcode),
+            ft.ElevatedButton("Show Barcode", on_click=showBarcode), 
             ft.ElevatedButton("Stop", on_click=stopCamera)  
             ])
     )

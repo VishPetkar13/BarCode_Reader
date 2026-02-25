@@ -3,3 +3,4 @@ numpy
 opencv-python
 flet == 0.19.0
 pillow
+python-barcode
