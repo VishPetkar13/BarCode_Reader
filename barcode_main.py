@@ -14,6 +14,7 @@ from database import save_scan
 
 stopEvent = threading.Event()
 recent_scans = {}
+latest_frame = None
 SCAN_DELAY = 3
 reader = BarCodeReader() #the startup for this is heavy on the system; so created once globally.
 #barcodes = set() #not needed anymore 
@@ -56,30 +57,31 @@ def videoLoop(imgControl, barcodeText, page):
 
     while cap.isOpened() and not stopEvent.is_set():
         ret, frame = cap.read()
+        global latest_frame
         if not ret:
             break
-        codes = readBarcode(frame)
-        current_time = time.time()
-        if codes:
-            display_text = []
-            for barcode_value, barcode_type in codes:
-                # check if recently scanned
-                if barcode_value in recent_scans:
-                    last_seen = recent_scans[barcode_value]
-                    if current_time - last_seen < SCAN_DELAY:
-                        continue   # ignore duplicate frame
+        # codes = readBarcode(frame)
+        # current_time = time.time()
+        # if codes:
+        #     display_text = []
+        #     for barcode_value, barcode_type in codes:
+        #         # check if recently scanned
+        #         if barcode_value in recent_scans:
+        #             last_seen = recent_scans[barcode_value]
+        #             if current_time - last_seen < SCAN_DELAY:
+        #                 continue   # ignore duplicate frame
 
-                # accept new scan
-                recent_scans[barcode_value] = current_time
-                save_scan(barcode_value, barcode_type)
+        #         # accept new scan
+        #         recent_scans[barcode_value] = current_time
+        #         save_scan(barcode_value, barcode_type)
 
-                display_text.append(f"{barcode_value} ({barcode_type})")
+        #         display_text.append(f"{barcode_value} ({barcode_type})")
 
-            if display_text:
-                barcodeText.value = "\n".join(display_text)
-        else:
-            barcodeText.value = "No Barcode Detected"
-
+        #     if display_text:
+        #         barcodeText.value = "\n".join(display_text)
+        # else:
+        #     barcodeText.value = "No Barcode Detected"
+        latest_frame = frame.copy()
         imgControl.src_base64 = f"{openCVToBase64(frame)}"
         page.update()
         time.sleep(0.03)
@@ -104,6 +106,31 @@ def main(page: ft.Page):
         t.start()
         threadHolder["thread"] = t
 
+    def captureBarcode(e):
+
+        global latest_frame
+
+        if latest_frame is None:
+            barcodeText.value = "No Frame Captured"
+            page.update()
+            return
+
+        codes = readBarcode(latest_frame)
+
+        if codes:
+            display_text = []
+
+            for barcode_value, barcode_type in codes:
+                save_scan(barcode_value, barcode_type)
+                display_text.append(f"{barcode_value} ({barcode_type})")
+
+            barcodeText.value = "\n".join(display_text)
+        else:
+            barcodeText.value = "No Barcode Detected"
+
+        page.update()
+
+
     def stopCamera(e):
         stopEvent.set()
         barcodeText.value = "stopped"
@@ -114,7 +141,8 @@ def main(page: ft.Page):
         img, 
         barcodeText, 
         ft.Row([
-            ft.ElevatedButton("Start", on_click=startCamera), 
+            ft.ElevatedButton("Start", on_click=startCamera),
+            ft.ElevatedButton("Capture", on_click=captureBarcode), 
             ft.ElevatedButton("Stop", on_click=stopCamera)  
             ])
     )
