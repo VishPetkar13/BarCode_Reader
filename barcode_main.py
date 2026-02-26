@@ -12,6 +12,7 @@ from database import init_db
 from database import save_scan
 from database import update_label
 from barcode_generator import generate_barcode
+from database import get_all_items
 
 
 stopEvent = threading.Event()
@@ -94,8 +95,9 @@ def main(page: ft.Page):
     page.window_width = 640
     page.window_height = 800
 
-    barcodeImage = ft.Image(width=400, height=150, src="placeholder.png")
-    img = ft.Image(width=480, height=320, src="localhost/nothing.jpg")
+    itemList = ft.ListView(expand=True, spacing=10, auto_scroll=True)
+    barcodeImage = ft.Image(width=400, height=150, src=" ")
+    img = ft.Image(width=480, height=320, src=" ")
     barcodeText = ft.Text("No barcode detected", size=16, selectable=True)
 
     threadHolder = {"thread": None}
@@ -109,8 +111,8 @@ def main(page: ft.Page):
         t.start()
         threadHolder["thread"] = t
 
-    def captureBarcode(e):
 
+    def captureBarcode(e):
         global latest_frame
 
         if latest_frame is None:
@@ -164,26 +166,61 @@ def main(page: ft.Page):
         dialog.open = True
         page.update()
 
-    def showBarcode(e):
-        test_value = "00010521435150001121625005"
-        test_type  = "ITF"
+    # def showBarcode(e):
+    #     test_value = "00010521435150001121625005"
+    #     test_type  = "ITF"
 
-        img_base64 = generate_barcode(test_value, test_type)
+    #     img_base64 = generate_barcode(test_value, test_type)
 
-        if img_base64:
-            barcodeImage.src_base64 = img_base64
-            page.update()  
+    #     if img_base64:
+    #         barcodeImage.src_base64 = img_base64
+    #         page.update()  
+
+    def loadHistory(e):
+
+        itemList.controls.clear()
+
+        items = get_all_items()
+
+        for barcode_value, barcode_type, user_label in items:
+
+            display_name = user_label if user_label else barcode_value
+
+            def show_saved(e, val=barcode_value, typ=barcode_type):
+                img_base64 = generate_barcode(val, typ)
+                if img_base64:
+                    barcodeImage.src_base64 = img_base64
+                    page.update()
+
+            itemList.controls.append(
+                ft.TextButton(
+                    text=display_name,
+                    on_click=show_saved
+                )
+            )
+
+        page.update()
 
     page.add(
-        img, 
-        barcodeText,
-        barcodeImage, 
-        ft.Row([
-            ft.ElevatedButton("Start", on_click=startCamera),
-            ft.ElevatedButton("Capture", on_click=captureBarcode),
-            ft.ElevatedButton("Show Barcode", on_click=showBarcode), 
-            ft.ElevatedButton("Stop", on_click=stopCamera)  
-            ])
+        ft.Column(
+            [
+                   
+                img, 
+                barcodeText,
+                barcodeImage,
+                # ft.Container(
+                #     height = 200,
+                #     content = itemList
+                # ),
+                ft.Row([
+                    ft.ElevatedButton("Start", on_click=startCamera),
+                    ft.ElevatedButton("Capture", on_click=captureBarcode),
+                    ft.ElevatedButton("Load History", on_click=loadHistory), 
+                    ft.ElevatedButton("Stop", on_click=stopCamera)  
+                    ])
+            ],
+            scroll = ft.ScrollMode.AUTO
+    )
     )
 
 ft.app(target=main)

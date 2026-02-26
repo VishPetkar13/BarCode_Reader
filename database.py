@@ -45,4 +45,17 @@ def update_label(barcode_value, label):
     
     conn.commit()
     conn.close()
-    
+
+def get_all_items():
+    conn = sqlite3.connect("barcode_history.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT barcode_value, barcode_type, user_label
+        FROM scanned_items
+    """)
+
+    items = cursor.fetchall()
+
+    conn.close()
+    return items
