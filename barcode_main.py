@@ -155,14 +155,17 @@ def main(page: ft.Page):
                 "/view",
                 [
                     ft.Image(src_base64=img_base64),
-                    ft.ElevatedButton("Back",
-                        on_click=lambda e: page.go("/history"))
+                    ft.ElevatedButton("Back", on_click=lambda e: go_back())
                 ]
             )
         )
 
         page.update()
 
+    def go_back():
+        if len(page.views)>1:
+            page.views.pop()
+            page.update()
 
     def startCamera(e):
         if threadHolder["thread"] and threadHolder["thread"].is_alive():
