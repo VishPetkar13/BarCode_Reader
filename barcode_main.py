@@ -95,12 +95,74 @@ def main(page: ft.Page):
     page.window_width = 640
     page.window_height = 800
 
-    itemList = ft.ListView(expand=True, spacing=10, auto_scroll=True)
-    barcodeImage = ft.Image(width=400, height=150, src=" ")
+    # itemList = ft.ListView(expand=True, spacing=10, auto_scroll=True)
+    # barcodeImage = ft.Image(width=400, height=150, src=" ")
     img = ft.Image(width=480, height=320, src=" ")
     barcodeText = ft.Text("No barcode detected", size=16, selectable=True)
 
     threadHolder = {"thread": None}
+
+    def route_change(route):
+        page.views.clear()
+        if page.route =="/":
+            page.views.append(
+                ft.View(
+                    "/",
+                    [
+                        img,
+                        barcodeText,
+                        ft.Row([
+                            ft.ElevatedButton("Start", on_click=startCamera),
+                            ft.ElevatedButton("Capture", on_click=captureBarcode),
+                            ft.ElevatedButton("Stop", on_click=stopCamera),
+                            ft.ElevatedButton("History", on_click=lambda e: page.go("/history"))
+                            
+                        ])
+                    ]
+                )
+            )
+        if page.route == "/history":
+            items = get_all_items()
+            history_controls = []
+            
+            for barcode_value, barcode_type, user_label in items:
+                display = user_label if user_label else barcode_value
+
+                history_controls.append(
+                    ft.TextButton(
+                        text=display,
+                        on_click=lambda e, val= barcode_value, typ= barcode_type: show_saved_barcode(val, typ)
+                    )
+                )    
+            page.views.append(
+                ft.View(
+                    "/history",
+                    [
+                        ft.Text("Scan History"),
+                        ft.Column(history_controls, scroll="auto"),
+                        ft.ElevatedButton("Back", on_click=lambda e: page.go("/")) 
+                    ]
+                )
+            )        
+        page.update()
+
+
+    def show_saved_barcode(value, typ):
+        img_base64 = generate_barcode(value, typ)
+
+        page.views.append(
+            ft.View(
+                "/view",
+                [
+                    ft.Image(src_base64=img_base64),
+                    ft.ElevatedButton("Back",
+                        on_click=lambda e: page.go("/history"))
+                ]
+            )
+        )
+
+        page.update()
+
 
     def startCamera(e):
         if threadHolder["thread"] and threadHolder["thread"].is_alive():
@@ -176,51 +238,53 @@ def main(page: ft.Page):
     #         barcodeImage.src_base64 = img_base64
     #         page.update()  
 
-    def loadHistory(e):
+    # def loadHistory(e):
 
-        itemList.controls.clear()
+    #     itemList.controls.clear()
 
-        items = get_all_items()
+    #     items = get_all_items()
 
-        for barcode_value, barcode_type, user_label in items:
+    #     for barcode_value, barcode_type, user_label in items:
 
-            display_name = user_label if user_label else barcode_value
+    #         display_name = user_label if user_label else barcode_value
 
-            def show_saved(e, val=barcode_value, typ=barcode_type):
-                img_base64 = generate_barcode(val, typ)
-                if img_base64:
-                    barcodeImage.src_base64 = img_base64
-                    page.update()
+    #         def show_saved(e, val=barcode_value, typ=barcode_type):
+    #             img_base64 = generate_barcode(val, typ)
+    #             if img_base64:
+    #                 barcodeImage.src_base64 = img_base64
+    #                 page.update()
 
-            itemList.controls.append(
-                ft.TextButton(
-                    text=display_name,
-                    on_click=show_saved
-                )
-            )
+    #         itemList.controls.append(
+    #             ft.TextButton(
+    #                 text=display_name,
+    #                 on_click=show_saved
+    #             )
+    #         )
 
-        page.update()
+    #     page.update()
 
-    page.add(
-        ft.Column(
-            [
+    # page.add(
+    #     ft.Column(
+    #         [
                    
-                img, 
-                barcodeText,
-                barcodeImage,
-                # ft.Container(
-                #     height = 200,
-                #     content = itemList
-                # ),
-                ft.Row([
-                    ft.ElevatedButton("Start", on_click=startCamera),
-                    ft.ElevatedButton("Capture", on_click=captureBarcode),
-                    ft.ElevatedButton("Load History", on_click=loadHistory), 
-                    ft.ElevatedButton("Stop", on_click=stopCamera)  
-                    ])
-            ],
-            scroll = ft.ScrollMode.AUTO
-    )
-    )
+    #             img, 
+    #             barcodeText,
+    #             barcodeImage,
+    #             ft.Container(
+    #                 height = 200,
+    #                 content = itemList
+    #             ),
+    #             ft.Row([
+    #                 ft.ElevatedButton("Start", on_click=startCamera),
+    #                 ft.ElevatedButton("Capture", on_click=captureBarcode),
+    #                 ft.ElevatedButton("Load History", on_click=loadHistory), 
+    #                 ft.ElevatedButton("Stop", on_click=stopCamera)  
+    #                 ])
+    #         ],
+    #         scroll = ft.ScrollMode.AUTO
+    # )
+    # )
+    page.on_route_change = route_change
+    page.go("/")
 
 ft.app(target=main)
