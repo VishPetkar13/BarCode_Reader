@@ -94,7 +94,7 @@ def videoLoop(imgControl, barcodeText, page):
 def main(page: ft.Page):
     init_db()
     page.window_width = 640
-    page.window_height = 800
+    page.window_height = 700
 
     # itemList = ft.ListView(expand=True, spacing=10, auto_scroll=True)
     # barcodeImage = ft.Image(width=400, height=150, src=" ")
@@ -173,6 +173,7 @@ def main(page: ft.Page):
                 dialog.open = False
                 page.snack_bar = ft.SnackBar(ft.Text("Barcode deleted"))
                 page.snack_bar.open = True
+                page.views.pop()
                 page.go("/history")
                 page.update()
 
