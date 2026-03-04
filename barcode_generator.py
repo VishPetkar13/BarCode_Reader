@@ -5,7 +5,16 @@ import base64
 
 def generate_barcode(barcode_value, barcode_type):
 
+    format_map = {
+        "EAN_13": "ean13",
+        "UPC_A": "upca",
+        "CODE_128": "code128",
+        "ITF": "itf"
+    }
+
     try: 
+        barcode_type = format_map.get(barcode_type, barcode_type)
+        
         barcode_class = barcode.get_barcode_class(barcode_type)
 
         buffer = BytesIO()

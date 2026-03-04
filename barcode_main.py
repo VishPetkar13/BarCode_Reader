@@ -160,16 +160,46 @@ def main(page: ft.Page):
     def show_saved_barcode(value, typ):
         img_base64 = generate_barcode(value, typ)
 
+        def confirm_delete(e):
+            
+            def delete_items(e):
+                delete_scan(value)
+
+                dialog.open = False
+                page.go("/history")
+                page.update()
+
+            dialog = ft.AlertDialog(
+                title=ft.Text("Delete this barcode?"),
+                content=ft.Text("This cannot be undone."),
+                actions=[
+                    ft.TextButton("Cancel", on_click=lambda e: close_dialog()),
+                    ft.TextButton("Delete", on_click=delete_items),
+                ]
+            )
+
+            page.dialog = dialog
+            dialog.open = True
+            page.update()
+
+        def close_dialog():
+            page.dialog.open = False
+            page.update()
+
         page.views.append(
             ft.View(
                 "/view",
                 [
                     ft.Image(src_base64=img_base64),
-                    ft.ElevatedButton("Back", on_click=lambda e: go_back())
+                    ft.Row(
+                        [
+                            ft.ElevatedButton("Back", on_click=lambda e: go_back()),
+                            ft.ElevatedButton("Delete", color="white", bgcolor="red", on_click=confirm_delete)
+                        ]
+                    )
                 ]
             )
         )
-
         page.update()
 
     def go_back():
@@ -236,15 +266,20 @@ def main(page: ft.Page):
 
         dialog = ft.AlertDialog(
             title=ft.Text("Name this bill"),
+            content=ft.Container( 
+                width=350,
             content=ft.Column(
                 [
-                    ft.Text(f"Barcode: {barcode_value}", size=14),
+                    ft.Text(f"Barcode: {barcode_value}", size=14, selectable=True),
                     input_field
-                ]
+                ], 
+                tight=True
+            )
             ),
             actions=[
-                ft.TextButton("Cancel", on_click=cancel_label),
-                ft.TextButton("Save", on_click=save_label)
+                ft.TextButton("Save", on_click=save_label),
+                ft.TextButton("Cancel", on_click=cancel_label)
+                
             ]
         )
 
