@@ -125,15 +125,24 @@ def main(page: ft.Page):
             items = get_all_items()
             history_controls = []
             
-            for barcode_value, barcode_type, user_label in items:
+            for barcode_value, barcode_type, user_label, scan_time in items:
                 display = user_label if user_label else barcode_value
 
                 history_controls.append(
-                    ft.TextButton(
-                        text=display,
-                        on_click=lambda e, val= barcode_value, typ= barcode_type: show_saved_barcode(val, typ)
+                    ft.Container(
+                        content=ft.Column(
+                            [
+                                ft.Text(display, size=16, weight="bold"),
+                                ft.Text(f"Scanned: {scan_time}", size=12, color="gray"),
+                            ]
+                        ),
+                        on_click=lambda e, val= barcode_value, typ= barcode_type: show_saved_barcode(val, typ),
+                        padding=10
                     )
-                )    
+                    
+                        
+                    )
+                    
             page.views.append(
                 ft.View(
                     "/history",
