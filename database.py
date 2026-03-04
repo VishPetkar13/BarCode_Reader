@@ -60,3 +60,15 @@ def get_all_items():
 
     conn.close()
     return items
+
+def delete_scan(barcode_value):
+    conn = sqlite3.connect("barcode_history.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        DELETE FROM scanned_items
+        WHERE barcode_value = ?
+    """, (barcode_value,))
+
+    conn.commit()
+    conn.close()

@@ -13,6 +13,7 @@ from database import save_scan
 from database import update_label
 from barcode_generator import generate_barcode
 from database import get_all_items
+from database import delete_scan
 
 
 stopEvent = threading.Event()
@@ -226,12 +227,23 @@ def main(page: ft.Page):
             dialog.open = False
             page.update()
 
+        def cancel_label(e):
+            delete_scan(barcode_value)
+            dialog.open = False
+            page.update()
+
         input_field = ft.TextField(label="Enter Store name")
 
         dialog = ft.AlertDialog(
-            title=ft.Text("Name this Bill"),
-            content=input_field,
+            title=ft.Text("Name this bill"),
+            content=ft.Column(
+                [
+                    ft.Text(f"Barcode: {barcode_value}", size=14),
+                    input_field
+                ]
+            ),
             actions=[
+                ft.TextButton("Cancel", on_click=cancel_label),
                 ft.TextButton("Save", on_click=save_label)
             ]
         )
