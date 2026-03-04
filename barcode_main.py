@@ -148,8 +148,13 @@ def main(page: ft.Page):
                 ft.View(
                     "/history",
                     [
-                        ft.Text("Scan History"),
-                        ft.Column(history_controls, scroll="auto"),
+                        ft.Text("Scan History", size=20, weight="bold"),
+
+                        ft.Container(
+                            expand=True, 
+                            content= ft.Column(history_controls, scroll=ft.ScrollMode.AUTO)
+                        ),
+                        
                         ft.ElevatedButton("Back", on_click=lambda e: page.go("/")) 
                     ]
                 )
@@ -166,6 +171,8 @@ def main(page: ft.Page):
                 delete_scan(value)
 
                 dialog.open = False
+                page.snack_bar = ft.SnackBar(ft.Text("Barcode deleted"))
+                page.snack_bar.open = True
                 page.go("/history")
                 page.update()
 
