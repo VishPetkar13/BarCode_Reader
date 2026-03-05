@@ -4,3 +4,10 @@ barenv/
 .vscode/
 temp.jpg
 test.py
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# VS Code settings
+.vscode/
