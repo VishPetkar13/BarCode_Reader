@@ -1,6 +1,3 @@
-# BarCode_Reader
-This project to to create a barcode reader that reads barcode and stores it in persistantly in a local database
-
 # Barcode Reader & Digital Receipt Manager
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue)
