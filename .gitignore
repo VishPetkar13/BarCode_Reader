@@ -4,6 +4,7 @@ barenv/
 .vscode/
 temp.jpg
 test.py
+notes.md
 
 # Python cache files
 __pycache__/
