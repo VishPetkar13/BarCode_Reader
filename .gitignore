@@ -11,3 +11,11 @@ __pycache__/
 
 # VS Code settings
 .vscode/
+
+# Database — runtime generated, may contain personal data
+barcode_history.db
+*.db
+
+# OS junk files
+.DS_Store
+Thumbs.db
