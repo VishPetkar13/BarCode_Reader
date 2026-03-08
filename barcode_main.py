@@ -50,7 +50,21 @@ def openCVToBase64(frame):
     pilImg.save(buffer, format="JPEG")
     return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
-
+def filter_items(items, search_term):
+    if not search_term:
+        return items
+    else:
+        filter_list = []
+        for barcode_value, barcode_type, user_label, scan_time in items:
+            if user_label is not None:
+            
+                if search_term.lower() in user_label.lower():
+                    filter_list.append((barcode_value, barcode_type, user_label, scan_time))
+            else:
+                if search_term.lower() in barcode_value.lower():
+                    filter_list.append((barcode_value, barcode_type, user_label, scan_time))
+        return filter_list
+    
 # ─────────────────────────────────────────────
 #  HELPER: Decode a barcode from a saved frame
 # ─────────────────────────────────────────────
@@ -210,7 +224,7 @@ def make_history_card(
                             max_lines=1,
                         ),
                         ft.Text(
-                            f"📅  {scan_time}",
+                            f"  {scan_time}",
                             size=11,
                             color=TEXT_MUTED,
                         ),
@@ -591,6 +605,31 @@ def main(page: ft.Page):
         elif page.route == "/history":
             items = get_all_items()
 
+            def on_search(e):
+                filtered = filter_items(items, e.data)
+                new_controls = []
+                for barcode_value, barcode_type, user_label, scan_time in filtered:
+                    display = user_label if user_label else barcode_value
+                    new_controls.append(make_history_card(
+                            display=display,
+                            scan_time=scan_time,
+                            on_click=lambda e, v=barcode_value, t=barcode_type, l=user_label: show_saved_barcode(v, t, l),
+
+                    ))
+                    
+                history_column.controls = new_controls
+                page.update()
+
+            search_field = ft.TextField(
+            label="Search",
+            prefix_icon=ft.icons.SEARCH,
+            border_color=ACCENT,
+            color=TEXT_PRIMARY,
+            bgcolor=BG_SURFACE,
+            on_change=on_search)
+
+            
+
             if items:
                 history_controls = []
                 for barcode_value, barcode_type, user_label, scan_time in items:
@@ -603,11 +642,12 @@ def main(page: ft.Page):
                         )
                     )
 
-                history_content = ft.Column(
+                history_column = ft.Column(
                     history_controls,
                     scroll=ft.ScrollMode.AUTO,
                     spacing=0,
                 )
+                history_content=history_column
             else:
                 # Empty state — better UX than a blank screen
                 history_content = ft.Column(
@@ -640,6 +680,10 @@ def main(page: ft.Page):
                         make_header(
                             "Vault",
                             f"{len(items)} barcode{'s' if len(items) != 1 else ''} stored",
+                        ),
+                        ft.Container(
+                            content=search_field,
+                            padding=ft.padding.symmetric(horizontal=20, vertical=8),
                         ),
                         ft.Container(
                             content=history_content,
