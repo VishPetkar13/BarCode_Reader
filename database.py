@@ -61,6 +61,20 @@ def get_all_items():
     conn.close()
     return items
 
+def migrate_db():
+    conn = sqlite3.connect("barcode_history.db")
+    cursor = conn.cursor()
+
+    cursor.execute("PRAGMA table_info(scanned_items)")
+    columns = [row[1] for row in cursor.fetchall()]
+    if "return_window" not in columns:
+        cursor.execute("ALTER TABLE scanned_items ADD " \
+        "COLUMN return_window INTEGER DEFAULT 28")
+    
+    conn.commit()
+    conn.close()
+
+
 def delete_scan(barcode_value):
     conn = sqlite3.connect("barcode_history.db")
     cursor = conn.cursor()

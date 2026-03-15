@@ -6,7 +6,7 @@ import base64
 import time
 from io import BytesIO
 from PIL import Image
-from database import init_db, save_scan, update_label, get_all_items, delete_scan
+from database import init_db, save_scan, update_label, get_all_items, delete_scan, migrate_db
 from barcode_generator import generate_barcode
 
 # ─────────────────────────────────────────────
@@ -250,6 +250,7 @@ def make_history_card(
 # ─────────────────────────────────────────────
 def main(page: ft.Page):
     init_db()
+    migrate_db()
 
     # ── Page-level settings ──────────────────
     # theme_mode DARK means Flet's default widgets also go dark.
