@@ -8,6 +8,7 @@ from io import BytesIO
 from PIL import Image
 from database import init_db, save_scan, update_label, get_all_items, delete_scan, migrate_db
 from barcode_generator import generate_barcode
+from datetime import datetime
 
 # ─────────────────────────────────────────────
 #  GLOBALS
@@ -30,6 +31,8 @@ TEXT_PRIMARY = "#F0F0F0"   # off-white — easier on eyes than pure white
 TEXT_MUTED   = "#888888"   # secondary text (timestamps, hints)
 DANGER       = "#E53935"   # delete / destructive actions
 BORDER       = "#2E2E2E"   # subtle borders between elements
+SUCCESS      = "#4CAF50"   # green — expiry safe
+WARNING      = "#FFC107"   # amber/yellow — getting close to expiry
 
 # ─────────────────────────────────────────────
 #  HELPER: OpenCV frame  →  base64 JPEG string
@@ -50,19 +53,38 @@ def openCVToBase64(frame):
     pilImg.save(buffer, format="JPEG")
     return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
+def days_remaining(scan_time, return_window):
+    scan = datetime.strptime(scan_time, "%Y-%m-%d %H:%M:%S")
+    today = datetime.now()
+
+    diff = today - scan
+    remaining = return_window - diff.days 
+    if remaining > 0:
+        return remaining
+    else:
+        return 0
+    
+def expiry_color(days):
+    if days > 7:
+        return SUCCESS
+    elif days == 0:
+        return DANGER
+    else:
+        return WARNING
+
 def filter_items(items, search_term):
     if not search_term:
         return items
     else:
         filter_list = []
-        for barcode_value, barcode_type, user_label, scan_time in items:
+        for barcode_value, barcode_type, user_label, scan_time, return_window in items:
             if user_label is not None:
             
                 if search_term.lower() in user_label.lower():
-                    filter_list.append((barcode_value, barcode_type, user_label, scan_time))
+                    filter_list.append((barcode_value, barcode_type, user_label, scan_time, return_window))
             else:
                 if search_term.lower() in barcode_value.lower():
-                    filter_list.append((barcode_value, barcode_type, user_label, scan_time))
+                    filter_list.append((barcode_value, barcode_type, user_label, scan_time, return_window))
         return filter_list
     
 # ─────────────────────────────────────────────
@@ -200,6 +222,7 @@ def make_pill_button(
 def make_history_card(
     display: str,
     scan_time: str,
+    days,
     on_click,
 ) -> ft.Container:
     """
@@ -227,6 +250,12 @@ def make_history_card(
                             f"  {scan_time}",
                             size=11,
                             color=TEXT_MUTED,
+                        ),
+                        ft.Text(
+                            f" {days} days remaining" if days > 0 else f"Expired", 
+                            size=11,
+                            color=expiry_color(days)
+
                         ),
                     ],
                     spacing=4,
@@ -609,9 +638,11 @@ def main(page: ft.Page):
             def on_search(e):
                 filtered = filter_items(items, e.data)
                 new_controls = []
-                for barcode_value, barcode_type, user_label, scan_time in filtered:
+                for barcode_value, barcode_type, user_label, scan_time, return_window in filtered:
                     display = user_label if user_label else barcode_value
+                    remaining = days_remaining(scan_time, return_window)
                     new_controls.append(make_history_card(
+                            days=remaining,
                             display=display,
                             scan_time=scan_time,
                             on_click=lambda e, v=barcode_value, t=barcode_type, l=user_label: show_saved_barcode(v, t, l),
@@ -633,10 +664,12 @@ def main(page: ft.Page):
 
             if items:
                 history_controls = []
-                for barcode_value, barcode_type, user_label, scan_time in items:
+                for barcode_value, barcode_type, user_label, scan_time, return_window in items:
                     display = user_label if user_label else barcode_value
+                    remaining = days_remaining(scan_time, return_window)
                     history_controls.append(
                         make_history_card(
+                            days=remaining,
                             display=display,
                             scan_time=scan_time,
                             on_click=lambda e, v=barcode_value, t=barcode_type, l=user_label: show_saved_barcode(v, t, l),

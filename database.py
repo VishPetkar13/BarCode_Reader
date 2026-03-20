@@ -51,7 +51,7 @@ def get_all_items():
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT barcode_value, barcode_type, user_label, scan_time
+        SELECT barcode_value, barcode_type, user_label, scan_time, return_window
         FROM scanned_items
         ORDER BY scan_time DESC
     """)
