@@ -19,25 +19,36 @@
 
       const html5QrCode = new Html5Qrcode("reader");
 
-      html5QrCode.start(
-        { facingMode: { exact: "environment" } },
-        {
-          fps: 10,
-          qrbox: { width: 370, height: 190 },
-          videoConstraints: {
-            width: { ideal: 1920 },
-            height: { ideal: 1080 }
-          },
-          formatsToSupport: [
-            Html5QrcodeSupportedFormats.ITF,
-            Html5QrcodeSupportedFormats.CODE_128,
-            Html5QrcodeSupportedFormats.UPC_A,
-            Html5QrcodeSupportedFormats.EAN_13
-          ]
+      const scanConfig = {
+        fps: 10,
+        qrbox: { width: 370, height: 190 },
+        videoConstraints: {
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
         },
-        onScanSuccess
-      ).catch(err => {
-        console.error("Camera start failed", err);
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.ITF,
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.EAN_13
+        ]
+      };
+
+      Html5Qrcode.getCameras().then(cameras => {
+        document.getElementById("result").innerText =
+          "Cameras found: " + cameras.map(c => c.label).join(" | ");
+
+        const backCamera = cameras.find(c =>
+          c.label.toLowerCase().includes("back")
+        );
+
+        const cameraId = backCamera ? backCamera.id : cameras[cameras.length - 1].id;
+
+        html5QrCode.start(cameraId, scanConfig, onScanSuccess).catch(err => {
+          console.error("Camera start failed", err);
+        });
+      }).catch(err => {
+        document.getElementById("result").innerText = "Camera list error: " + err;
       });
     </script>
   </body>
