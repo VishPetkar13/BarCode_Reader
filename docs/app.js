@@ -51,22 +51,26 @@ navigator.mediaDevices.getUserMedia({
 });
 
 document.getElementById("captureBtn").addEventListener("click", () => {
+  resultText.innerText = "Capturing...";
+
   // Freeze the current video frame onto the canvas
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
 
   // Convert that frame into a file html5-qrcode can decode
+  // Quality 1.0 avoids JPEG compression artifacts that can blur barcode lines
   canvas.toBlob(blob => {
     const file = new File([blob], "capture.jpg", { type: "image/jpeg" });
 
     html5QrCode.scanFile(file, false).then(decodedText => {
       detectedValue.innerText = decodedText;
       confirmArea.style.display = "block";
+      resultText.innerText = "Barcode detected";
     }).catch(err => {
       resultText.innerText = "No barcode detected, try again";
     });
-  }, "image/jpeg");
+  }, "image/jpeg", 1.0);
 });
 
 document.getElementById("confirmYes").addEventListener("click", () => {
