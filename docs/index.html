@@ -20,10 +20,10 @@
       const html5QrCode = new Html5Qrcode("reader");
 
       html5QrCode.start(
-        { facingMode: "environment" },
+        { facingMode: { exact: "environment" } },
         {
           fps: 10,
-          qrbox: { width: 320, height: 120 },
+          qrbox: { width: 370, height: 190 },
           videoConstraints: {
             width: { ideal: 1920 },
             height: { ideal: 1080 }
