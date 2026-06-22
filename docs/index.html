@@ -2,10 +2,38 @@
 <html lang="en">
   <head>
     <title>Barcode Vault</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
   </head>
   <body>
     <main>
         <h1>Barcode Vault</h1>
+        <div id="reader"></div>
+        <p id="result">No barcode scanned yet</p>
     </main>
+
+    <script>
+      function onScanSuccess(decodedText, decodedResult) {
+        document.getElementById("result").innerText = decodedText;
+      }
+
+      const html5QrCode = new Html5Qrcode("reader");
+
+      html5QrCode.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: 250,
+          formatsToSupport: [
+            Html5QrcodeSupportedFormats.ITF,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.EAN_13
+          ]
+        },
+        onScanSuccess
+      ).catch(err => {
+        console.error("Camera start failed", err);
+      });
+    </script>
   </body>
 </html>
