@@ -8,7 +8,6 @@
     <main>
         <h1>Barcode Vault</h1>
         <p id="instructions">Hold steady, 10-15cm away, in good light</p>
-        <select id="cameraSelect"></select>
         <div id="reader"></div>
         <p id="result">No barcode scanned yet</p>
     </main>
@@ -20,48 +19,25 @@
 
       const html5QrCode = new Html5Qrcode("reader");
 
-      const scanConfig = {
-        fps: 10,
-        qrbox: { width: 370, height: 190 },
-        videoConstraints: {
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
+      html5QrCode.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: { width: 370, height: 190 },
+          videoConstraints: {
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          },
+          formatsToSupport: [
+            Html5QrcodeSupportedFormats.ITF,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.EAN_13
+          ]
         },
-        formatsToSupport: [
-          Html5QrcodeSupportedFormats.ITF,
-          Html5QrcodeSupportedFormats.CODE_128,
-          Html5QrcodeSupportedFormats.UPC_A,
-          Html5QrcodeSupportedFormats.EAN_13
-        ]
-      };
-
-      function startCamera(cameraId) {
-        html5QrCode.start(cameraId, scanConfig, onScanSuccess).catch(err => {
-          document.getElementById("result").innerText = "Start failed: " + err;
-        });
-      }
-
-      Html5Qrcode.getCameras().then(cameras => {
-        const select = document.getElementById("cameraSelect");
-
-        cameras.forEach((camera, index) => {
-          const option = document.createElement("option");
-          option.value = camera.id;
-          option.text = camera.label || ("Camera " + index);
-          select.appendChild(option);
-        });
-
-        select.addEventListener("change", () => {
-          html5QrCode.stop().then(() => {
-            startCamera(select.value);
-          });
-        });
-
-        // Start with the last camera in the list as a first guess
-        select.selectedIndex = cameras.length - 1;
-        startCamera(cameras[cameras.length - 1].id);
-      }).catch(err => {
-        document.getElementById("result").innerText = "Camera list error: " + err;
+        onScanSuccess
+      ).catch(err => {
+        document.getElementById("result").innerText = "Start failed: " + err;
       });
     </script>
   </body>
