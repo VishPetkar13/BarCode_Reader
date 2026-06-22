@@ -23,7 +23,15 @@
         { facingMode: "environment" },
         {
           fps: 10,
-          qrbox: { width: 370, height: 190 },
+          qrbox: function(viewfinderWidth, viewfinderHeight) {
+            const width = Math.floor(viewfinderWidth * 0.9);
+            const height = Math.floor(viewfinderHeight * 0.35);
+            return { width: width, height: height };
+          },
+          videoConstraints: {
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          },
           formatsToSupport: [
             Html5QrcodeSupportedFormats.ITF,
             Html5QrcodeSupportedFormats.CODE_128,
