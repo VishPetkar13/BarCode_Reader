@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
   <head>
     <title>Barcode Vault</title>
@@ -8,6 +7,7 @@
   <body>
     <main>
         <h1>Barcode Vault</h1>
+        <p id="instructions">Hold steady, 10-15cm away, in good light</p>
         <div id="reader"></div>
         <p id="result">No barcode scanned yet</p>
     </main>
@@ -23,7 +23,11 @@
         { facingMode: "environment" },
         {
           fps: 10,
-          qrbox: 250,
+          qrbox: { width: 320, height: 120 },
+          videoConstraints: {
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          },
           formatsToSupport: [
             Html5QrcodeSupportedFormats.ITF,
             Html5QrcodeSupportedFormats.CODE_128,
