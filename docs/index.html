@@ -9,6 +9,7 @@
         <h1>Barcode Vault</h1>
         <p id="instructions">Align the barcode, hold steady, then tap Capture</p>
 
+        <select id="cameraSelect"></select>
         <video id="preview" autoplay playsinline style="width: 100%;"></video>
         <canvas id="snapshot" style="display: none;"></canvas>
 
@@ -32,13 +33,45 @@
 
       const html5QrCode = new Html5Qrcode("snapshot");
 
-      // Start the live camera preview (simple, single preference, no extras)
-      navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" }
-      }).then(stream => {
-        video.srcObject = stream;
-      }).catch(err => {
-        resultText.innerText = "Camera error: " + err;
+      let currentStream = null;
+
+      function startStream(deviceId) {
+        const constraints = deviceId
+          ? { video: { deviceId: { exact: deviceId } } }
+          : { video: { facingMode: "environment" } };
+
+        navigator.mediaDevices.getUserMedia(constraints).then(stream => {
+          if (currentStream) {
+            currentStream.getTracks().forEach(track => track.stop());
+          }
+          currentStream = stream;
+          video.srcObject = stream;
+        }).catch(err => {
+          resultText.innerText = "Camera error: " + err;
+        });
+      }
+
+      navigator.mediaDevices.getUserMedia({ video: true }).then(initialStream => {
+        // Stop this temporary stream - we only used it to unlock camera labels
+        initialStream.getTracks().forEach(track => track.stop());
+
+        navigator.mediaDevices.enumerateDevices().then(devices => {
+          const cameras = devices.filter(d => d.kind === "videoinput");
+          const select = document.getElementById("cameraSelect");
+
+          cameras.forEach((camera, index) => {
+            const option = document.createElement("option");
+            option.value = camera.deviceId;
+            option.text = camera.label || ("Camera " + index);
+            select.appendChild(option);
+          });
+
+          select.addEventListener("change", () => {
+            startStream(select.value);
+          });
+
+          startStream(select.value);
+        });
       });
 
       document.getElementById("captureBtn").addEventListener("click", () => {
