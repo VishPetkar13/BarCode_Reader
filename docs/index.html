@@ -23,52 +23,6 @@
         </div>
     </main>
 
-    <script>
-      const video = document.getElementById("preview");
-      const canvas = document.getElementById("snapshot");
-      const resultText = document.getElementById("result");
-      const confirmArea = document.getElementById("confirmArea");
-      const detectedValue = document.getElementById("detectedValue");
-
-      const html5QrCode = new Html5Qrcode("snapshot");
-
-      // Start the live camera preview (simple, single preference, no extras)
-      navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" }
-      }).then(stream => {
-        video.srcObject = stream;
-      }).catch(err => {
-        resultText.innerText = "Camera error: " + err;
-      });
-
-      document.getElementById("captureBtn").addEventListener("click", () => {
-        // Freeze the current video frame onto the canvas
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        // Convert that frame into a file html5-qrcode can decode
-        canvas.toBlob(blob => {
-          const file = new File([blob], "capture.jpg", { type: "image/jpeg" });
-
-          html5QrCode.scanFile(file, false).then(decodedText => {
-            detectedValue.innerText = decodedText;
-            confirmArea.style.display = "block";
-          }).catch(err => {
-            resultText.innerText = "No barcode detected, try again";
-          });
-        }, "image/jpeg");
-      });
-
-      document.getElementById("confirmYes").addEventListener("click", () => {
-        resultText.innerText = "Saved: " + detectedValue.innerText;
-        confirmArea.style.display = "none";
-      });
-
-      document.getElementById("confirmRetry").addEventListener("click", () => {
-        confirmArea.style.display = "none";
-        resultText.innerText = "Try capturing again";
-      });
-    </script>
+    <script src="app.js"></script>
   </body>
 </html>
