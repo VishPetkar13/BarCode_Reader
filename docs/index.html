@@ -1,27 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Barcode Vault</title>
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-    <style>
-      body {
-        font-size: 18px;
-        font-family: sans-serif;
-        padding: 10px;
-      }
-      h1 {
-        font-size: 28px;
-      }
-      button {
-        font-size: 20px;
-        padding: 12px 20px;
-        margin: 8px 4px;
-      }
-      p {
-        font-size: 18px;
-      }
-    </style>
+    <script src="https://unpkg.com/html5-qrcode"></script>
   </head>
   <body>
     <main>
@@ -37,19 +18,9 @@
 
         <div id="confirmArea" style="display: none;">
           <p>Detected value: <span id="detectedValue"></span></p>
-          <input type="text" id="labelInput" placeholder="Store / receipt name">
-          <button id="confirmYes">Save</button>
+          <button id="confirmYes">Yes, that's correct</button>
           <button id="confirmRetry">Retry</button>
         </div>
-
-        <dialog id="labelDialog">
-          <p>Name this scan</p>
-          <p id="labelBarcodeValue" style="font-family: monospace;"></p>
-          <input type="text" id="labelInput" placeholder="Store / receipt name">
-          <br><br>
-          <button id="labelSave">Save</button>
-          <button id="labelCancel">Cancel</button>
-        </dialog>
     </main>
 
     <script src="app.js"></script>

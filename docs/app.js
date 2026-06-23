@@ -7,7 +7,7 @@ function getAllItems() {
   return data ? JSON.parse(data) : [];
 }
 
-function saveItem(barcode_value, barcode_type, user_label) {
+function saveItem(barcode_value, barcode_type) {
   const items = getAllItems();
 
   // Mirror the UNIQUE constraint from the old SQLite schema
@@ -19,7 +19,7 @@ function saveItem(barcode_value, barcode_type, user_label) {
   const newItem = {
     barcode_value: barcode_value,
     barcode_type: barcode_type,
-    user_label: user_label || null,
+    user_label: null,
     scan_time: new Date().toISOString(),
     return_window: 28
   };
@@ -46,66 +46,42 @@ navigator.mediaDevices.getUserMedia({
   video: { facingMode: "environment" }
 }).then(stream => {
   video.srcObject = stream;
-
-  // Best-effort attempt at continuous autofocus.
-  // Not supported on all browsers/devices, so we ignore failures silently.
-  const track = stream.getVideoTracks()[0];
-  track.applyConstraints({ advanced: [{ focusMode: "continuous" }] }).catch(() => {});
 }).catch(err => {
   resultText.innerText = "Camera error: " + err;
 });
 
-function captureFrame() {
+document.getElementById("captureBtn").addEventListener("click", () => {
+  // Freeze the current video frame onto the canvas
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  return new Promise(resolve => {
-    canvas.toBlob(blob => {
-      resolve(new File([blob], "capture.jpg", { type: "image/jpeg" }));
-    }, "image/jpeg", 1.0);
-  });
-}
+  // Convert that frame into a file html5-qrcode can decode
+  canvas.toBlob(blob => {
+    const file = new File([blob], "capture.jpg", { type: "image/jpeg" });
 
-async function tryDecode(attemptsRemaining) {
-  const file = await captureFrame();
-
-  try {
-    const decodedText = await html5QrCode.scanFile(file, false);
-    detectedValue.innerText = decodedText;
-    confirmArea.style.display = "block";
-    resultText.innerText = "Barcode detected";
-  } catch (err) {
-    if (attemptsRemaining > 1) {
-      resultText.innerText = "Still trying... (" + attemptsRemaining + " attempts left)";
-      setTimeout(() => tryDecode(attemptsRemaining - 1), 300);
-    } else {
+    html5QrCode.scanFile(file, false).then(decodedText => {
+      detectedValue.innerText = decodedText;
+      confirmArea.style.display = "block";
+    }).catch(err => {
       resultText.innerText = "No barcode detected, try again";
-    }
-  }
-}
-
-document.getElementById("captureBtn").addEventListener("click", () => {
-  resultText.innerText = "Capturing...";
-  // Small delay lets autofocus settle after the tap before the first attempt
-  setTimeout(() => tryDecode(3), 400);
+    });
+  }, "image/jpeg");
 });
 
 document.getElementById("confirmYes").addEventListener("click", () => {
   const value = detectedValue.innerText;
-  const label = document.getElementById("labelInput").value;
 
   // We don't know the exact format from a captured image the same way
   // ZXing did on desktop, so we store it generically for now.
-  const saved = saveItem(value, "UNKNOWN", label);
+  const saved = saveItem(value, "UNKNOWN");
 
   if (saved) {
-    resultText.innerText = "Saved as: " + (label || value);
+    resultText.innerText = "Saved: " + value;
   } else {
     resultText.innerText = "Already saved previously: " + value;
   }
 
-  document.getElementById("labelInput").value = "";
   confirmArea.style.display = "none";
 });
 
