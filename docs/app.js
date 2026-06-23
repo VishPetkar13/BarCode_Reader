@@ -39,7 +39,16 @@ const resultText = document.getElementById("result");
 const confirmArea = document.getElementById("confirmArea");
 const detectedValue = document.getElementById("detectedValue");
 
-const html5QrCode = new Html5Qrcode("snapshot");
+const html5QrCode = new Html5Qrcode("snapshot", {
+  formatsToSupport: [
+    Html5QrcodeSupportedFormats.ITF,
+    Html5QrcodeSupportedFormats.CODE_128,
+    Html5QrcodeSupportedFormats.UPC_A,
+    Html5QrcodeSupportedFormats.UPC_E,
+    Html5QrcodeSupportedFormats.EAN_13,
+    Html5QrcodeSupportedFormats.EAN_8
+  ]
+});
 
 // Start the live camera preview (simple, single preference, no extras)
 navigator.mediaDevices.getUserMedia({
