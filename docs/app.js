@@ -115,3 +115,55 @@ document.getElementById("confirmRetry").addEventListener("click", () => {
   confirmArea.style.display = "none";
   resultText.innerText = "Try capturing again";
 });
+
+// ─────────────────────────────────────────────
+//  HISTORY PAGE  (replaces history route in barcode_main.py)
+// ─────────────────────────────────────────────
+
+function renderHistory() {
+  const items = getAllItems();
+  const historyList = document.getElementById("historyList");
+
+  if (items.length === 0) {
+    historyList.innerHTML = "<p>No barcodes saved yet</p>";
+    return;
+  }
+
+  historyList.innerHTML = items.map(item => {
+    const display = item.user_label || item.barcode_value;
+    const scanTime = new Date(item.scan_time).toLocaleString();
+
+    return `
+      <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 8px;">
+        <strong>${display}</strong><br>
+        <span>${scanTime}</span><br>
+        <span>${item.barcode_type}</span>
+      </div>
+    `;
+  }).join("");
+}
+
+// ─────────────────────────────────────────────
+//  NAVIGATION  (replaces page.go() routing in barcode_main.py)
+// ─────────────────────────────────────────────
+
+document.getElementById("viewHistoryBtn").addEventListener("click", () => {
+  document.getElementById("scannerView").style.display = "none";
+  document.getElementById("historyView").style.display = "block";
+  renderHistory();
+});
+
+document.getElementById("backToScannerBtn").addEventListener("click", () => {
+  document.getElementById("historyView").style.display = "none";
+  document.getElementById("scannerView").style.display = "block";
+});
+
+document.getElementById("viewAboutBtn").addEventListener("click", () => {
+  document.getElementById("scannerView").style.display = "none";
+  document.getElementById("aboutView").style.display = "block";
+});
+
+document.getElementById("backFromAboutBtn").addEventListener("click", () => {
+  document.getElementById("aboutView").style.display = "none";
+  document.getElementById("scannerView").style.display = "block";
+});

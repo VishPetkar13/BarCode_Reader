@@ -6,6 +6,7 @@
   </head>
   <body>
     <main>
+        <section id="scannerView">
         <h1>Barcode Vault</h1>
         <p id="instructions">Align the barcode, hold steady, then tap Capture</p>
         <div id="videoContainer" style="position: relative; width: 100%;">
@@ -29,6 +30,24 @@
           <button id="confirmYes">Yes, that's correct</button>
           <button id="confirmRetry">Retry</button>
         </div>
+        <button id="viewHistoryBtn">View History</button>
+        <button id="viewAboutBtn">About</button>
+    </section>
+
+    <section id="historyView" style="display: none;">
+        <h1>Scan History</h1>
+        <div id="historyList"></div>
+        <button id="backToScannerBtn">Back</button>
+    </section>
+
+    <section id="aboutView" style="display: none;">
+        <h1>About Barcode Vault</h1>
+        <p>This app stores all your scanned barcode data <strong>locally on your own device only</strong>, inside your browser's storage. No barcode values, labels, or images are ever sent to or stored on any external server or database. The only data that briefly leaves your device is a single captured image, sent temporarily to a decoding service purely to read the barcode value — it is not saved or logged anywhere after that.</p>
+        <p>We have made every reasonable effort to ensure there is no data leak or unintended exposure of your information.</p>
+        <p>Version 1.0 (PWA)</p>
+        <p>Created by Vishal Petkar</p>
+        <button id="backFromAboutBtn">Back</button>
+    </section>
     </main>
     <script src="app.js"></script>
   </body>
