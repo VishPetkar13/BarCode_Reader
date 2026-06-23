@@ -1,12 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Barcode Vault</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode/dist/JsBarcode.all.min.js"></script>
+    <style>
+      body { font-size: 18px; font-family: sans-serif; padding: 10px; }
+      h1 { font-size: 26px; }
+      button { font-size: 18px; padding: 10px 16px; margin: 6px 4px; }
+      p { font-size: 16px; }
+      input[type="text"] { font-size: 16px; padding: 8px; width: 90%; }
+      .historyCard {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 8px;
+        cursor: pointer;
+      }
+    </style>
   </head>
   <body>
     <main>
-        <section id="scannerView">
+      <section id="scannerView">
         <h1>Barcode Vault</h1>
         <p id="instructions">Align the barcode, hold steady, then tap Capture</p>
         <div id="videoContainer" style="position: relative; width: 100%;">
@@ -27,27 +42,47 @@
         <p id="result">No barcode scanned yet</p>
         <div id="confirmArea" style="display: none;">
           <p>Detected value: <span id="detectedValue"></span></p>
-          <button id="confirmYes">Yes, that's correct</button>
+          <input type="text" id="labelInput" placeholder="Store / receipt name">
+          <button id="confirmYes">Save</button>
           <button id="confirmRetry">Retry</button>
         </div>
         <button id="viewHistoryBtn">View History</button>
         <button id="viewAboutBtn">About</button>
-    </section>
+      </section>
 
-    <section id="historyView" style="display: none;">
+      <section id="historyView" style="display: none;">
         <h1>Scan History</h1>
+        <input type="text" id="searchInput" placeholder="Search by name or barcode value">
         <div id="historyList"></div>
         <button id="backToScannerBtn">Back</button>
-    </section>
+      </section>
 
-    <section id="aboutView" style="display: none;">
+      <section id="viewItemView" style="display: none;">
+        <h1>Barcode Detail</h1>
+        <div id="barcodeImageContainer">
+          <svg id="barcodeSvg"></svg>
+          <p id="barcodeRenderFallback" style="display: none;">
+            (Could not render barcode image for this format)
+          </p>
+        </div>
+        <p>Value: <span id="viewValue"></span></p>
+        <p>Type: <span id="viewType"></span></p>
+        <p>Scanned: <span id="viewScanTime"></span></p>
+        <p id="viewExpiryStatus"></p>
+        <input type="text" id="editLabelInput" placeholder="Store / receipt name">
+        <button id="saveLabelBtn">Save Label</button>
+        <button id="deleteItemBtn">Delete</button>
+        <button id="backFromViewBtn">Back</button>
+      </section>
+
+      <section id="aboutView" style="display: none;">
         <h1>About Barcode Vault</h1>
-        <p>This app stores all your scanned barcode data <strong>locally on your own device only</strong>, inside your browser's storage. No barcode values, labels, or images are ever sent to or stored on any external server or database. The only data that briefly leaves your device is a single captured image, sent temporarily to a decoding service purely to read the barcode value — it is not saved or logged anywhere after that.</p>
+        <p>This app stores all your scanned barcode data <strong>locally on your own device only</strong>, inside your browser's storage. No barcode values, labels, or images are ever sent to or stored on any external server or database.</p>
         <p>We have made every reasonable effort to ensure there is no data leak or unintended exposure of your information.</p>
         <p>Version 1.0 (PWA)</p>
         <p>Created by Vishal Petkar</p>
         <button id="backFromAboutBtn">Back</button>
-    </section>
+      </section>
     </main>
     <script src="app.js"></script>
   </body>
