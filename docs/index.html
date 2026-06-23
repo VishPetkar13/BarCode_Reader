@@ -5,17 +5,127 @@
     <title>Barcode Vault</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode/dist/JsBarcode.all.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@600;700&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <style>
-      body { font-size: 18px; font-family: sans-serif; padding: 10px; }
-      h1 { font-size: 26px; }
-      button { font-size: 18px; padding: 10px 16px; margin: 6px 4px; }
-      p { font-size: 16px; }
-      input[type="text"] { font-size: 16px; padding: 8px; width: 90%; }
-      .historyCard {
-        border: 1px solid #ccc;
-        padding: 10px;
-        margin-bottom: 8px;
+      :root {
+        --bg-base: #F1EEE2;
+        --bg-card: #FAF8F0;
+        --text-primary: #1F2B2E;
+        --text-muted: #5C6660;
+        --accent-blue: #1C7C95;
+        --accent-green: #4C6B3A;
+        --accent-gold: #D9A53D;
+        --accent-orange: #C9622E;
+        --border: #D8D2C0;
+        --danger: #B23A2E;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        background: var(--bg-base);
+        color: var(--text-primary);
+        font-family: 'Work Sans', sans-serif;
+        font-size: 17px;
+        padding: 16px;
+        margin: 0;
+      }
+
+      h1 {
+        font-family: 'Spectral', serif;
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        margin-bottom: 4px;
+      }
+
+      p { font-size: 16px; color: var(--text-muted); }
+
+      button {
+        font-family: 'Work Sans', sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        padding: 12px 18px;
+        margin: 6px 4px 6px 0;
+        background: var(--accent-blue);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
         cursor: pointer;
+      }
+
+      button#deleteItemBtn { background: var(--danger); }
+      button#backToScannerBtn,
+      button#backFromAboutBtn,
+      button#backFromViewBtn,
+      button#confirmRetry { background: var(--text-muted); }
+
+      input[type="text"] {
+        font-size: 16px;
+        padding: 10px 12px;
+        width: 100%;
+        max-width: 400px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--bg-card);
+        color: var(--text-primary);
+        margin-bottom: 8px;
+      }
+
+      .mono { font-family: 'JetBrains Mono', monospace; }
+
+      .historyCard {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 10px;
+        cursor: pointer;
+      }
+
+      .historyCard strong {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 16px;
+      }
+
+      #videoContainer {
+        position: relative;
+        width: 100%;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 12px 0;
+      }
+
+      /* HUD-style scan reticle, corner brackets instead of a full box */
+      .scanCorner {
+        position: absolute;
+        width: 28px;
+        height: 28px;
+        pointer-events: none;
+      }
+      .scanCorner.tl { top: 35%; left: 5%; border-top: 4px solid var(--accent-gold); border-left: 4px solid var(--accent-gold); }
+      .scanCorner.tr { top: 35%; right: 5%; border-top: 4px solid var(--accent-gold); border-right: 4px solid var(--accent-gold); }
+      .scanCorner.bl { top: 57%; left: 5%; border-bottom: 4px solid var(--accent-gold); border-left: 4px solid var(--accent-gold); }
+      .scanCorner.br { top: 57%; right: 5%; border-bottom: 4px solid var(--accent-gold); border-right: 4px solid var(--accent-gold); }
+
+      #scanBox {
+        position: absolute;
+        top: 35%;
+        left: 5%;
+        width: 90%;
+        height: 22%;
+        box-sizing: border-box;
+        pointer-events: none;
+      }
+
+      section { max-width: 480px; }
+
+      #barcodeImageContainer {
+        background: #fff;
+        border-radius: 10px;
+        padding: 12px;
+        margin-bottom: 12px;
       }
     </style>
   </head>
@@ -24,24 +134,19 @@
       <section id="scannerView">
         <h1>Barcode Vault</h1>
         <p id="instructions">Align the barcode, hold steady, then tap Capture</p>
-        <div id="videoContainer" style="position: relative; width: 100%;">
+        <div id="videoContainer">
           <video id="preview" autoplay playsinline style="width: 100%; display: block;"></video>
-          <div id="scanBox" style="
-            position: absolute;
-            top: 35%;
-            left: 5%;
-            width: 90%;
-            height: 22%;
-            border: 3px solid red;
-            box-sizing: border-box;
-            pointer-events: none;
-          "></div>
+          <div id="scanBox"></div>
+          <div class="scanCorner tl"></div>
+          <div class="scanCorner tr"></div>
+          <div class="scanCorner bl"></div>
+          <div class="scanCorner br"></div>
         </div>
         <canvas id="snapshot" style="display: none;"></canvas>
         <button id="captureBtn">Capture</button>
         <p id="result">No barcode scanned yet</p>
         <div id="confirmArea" style="display: none;">
-          <p>Detected value: <span id="detectedValue"></span></p>
+          <p>Detected value: <span id="detectedValue" class="mono"></span></p>
           <input type="text" id="labelInput" placeholder="Store / receipt name">
           <button id="confirmYes">Save</button>
           <button id="confirmRetry">Retry</button>
@@ -65,7 +170,7 @@
             (Could not render barcode image for this format)
           </p>
         </div>
-        <p>Value: <span id="viewValue"></span></p>
+        <p>Value: <span id="viewValue" class="mono"></span></p>
         <p>Type: <span id="viewType"></span></p>
         <p>Scanned: <span id="viewScanTime"></span></p>
         <p id="viewExpiryStatus"></p>
@@ -77,7 +182,7 @@
 
       <section id="aboutView" style="display: none;">
         <h1>About Barcode Vault</h1>
-        <p>This app stores all your scanned barcode data <strong>locally on your own device only</strong>, inside your browser's storage. No barcode values, labels, or images are ever sent to or stored on any external server or database.</p>
+        <p>This app stores all your scanned barcode data <strong>locally on your own device only</strong>, inside your browser's storage. No barcode values, labels, or images are ever sent to or stored on any external server or database. The only data that briefly leaves your device is a single captured image, sent temporarily to a decoding service purely to read the barcode value — it is not saved or logged anywhere after that.</p>
         <p>We have made every reasonable effort to ensure there is no data leak or unintended exposure of your information.</p>
         <p>Version 1.0 (PWA)</p>
         <p>Created by Vishal Petkar</p>

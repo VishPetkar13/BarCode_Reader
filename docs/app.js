@@ -49,6 +49,9 @@ function deleteItem(barcode_value) {
 
 // ─────────────────────────────────────────────
 //  EXPIRY TRACKING  (mirrors days_remaining / expiry_color from desktop app)
+//  Green:  more than 8 days remaining
+//  Yellow: 4 to 8 days remaining
+//  Red:    0 to 3 days remaining
 // ─────────────────────────────────────────────
 
 function daysRemaining(scanTimeISO, returnWindow) {
@@ -61,9 +64,9 @@ function daysRemaining(scanTimeISO, returnWindow) {
 }
 
 function expiryColor(days) {
-  if (days > 7) return "green";
-  if (days === 0) return "red";
-  return "orange";
+  if (days > 8) return "var(--accent-green)";
+  if (days >= 4) return "var(--accent-gold)";
+  return "var(--danger)";
 }
 
 // ─────────────────────────────────────────────
@@ -187,12 +190,11 @@ function renderHistory(searchTerm) {
       <div class="historyCard" data-value="${item.barcode_value}">
         <strong>${display}</strong><br>
         <span>${scanTime}</span><br>
-        <span style="color: ${color};">${statusText}</span>
+        <span style="color: ${color}; font-weight: 600;">${statusText}</span>
       </div>
     `;
   }).join("");
 
-  // Attach click handlers to each card after inserting them into the page
   document.querySelectorAll(".historyCard").forEach(card => {
     card.addEventListener("click", () => {
       openItemView(card.getAttribute("data-value"));
@@ -208,7 +210,6 @@ document.getElementById("searchInput").addEventListener("input", (e) => {
 //  BARCODE VIEWER  (replaces barcode_generator.py + viewer route)
 // ─────────────────────────────────────────────
 
-// Maps zxing-cpp's format names to JsBarcode's expected format names
 const formatMap = {
   "EAN-13": "EAN13",
   "EAN-8": "EAN8",
@@ -237,6 +238,7 @@ function openItemView(barcodeValue) {
   const statusEl = document.getElementById("viewExpiryStatus");
   statusEl.innerText = remaining > 0 ? remaining + " days remaining" : "Expired";
   statusEl.style.color = color;
+  statusEl.style.fontWeight = "600";
 
   const svg = document.getElementById("barcodeSvg");
   const fallback = document.getElementById("barcodeRenderFallback");
