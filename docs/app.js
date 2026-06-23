@@ -51,9 +51,8 @@ navigator.mediaDevices.getUserMedia({
 });
 
 document.getElementById("captureBtn").addEventListener("click", () => {
-  // Work out where the visible scan box sits relative to the actual
-  // camera resolution, since the on-screen video is often displayed
-  // smaller/larger than its real pixel dimensions.
+  resultText.innerText = "Capturing...";
+
   const scanBox = document.getElementById("scanBox");
   const videoRect = video.getBoundingClientRect();
   const boxRect = scanBox.getBoundingClientRect();
@@ -70,16 +69,29 @@ document.getElementById("captureBtn").addEventListener("click", () => {
   canvas.height = sHeight;
   canvas.getContext("2d").drawImage(video, sx, sy, sWidth, sHeight, 0, 0, sWidth, sHeight);
 
-  // Convert that frame into a file html5-qrcode can decode
   canvas.toBlob(blob => {
-    const file = new File([blob], "capture.jpg", { type: "image/jpeg" });
+    const formData = new FormData();
+    formData.append("image", blob, "capture.jpg");
 
-    html5QrCode.scanFile(file, false).then(decodedText => {
-      detectedValue.innerText = decodedText;
-      confirmArea.style.display = "block";
-    }).catch(err => {
-      resultText.innerText = "No barcode detected, try again";
-    });
+    resultText.innerText = "Sending to decoder...";
+
+    fetch("https://barcodereader.eu.pythonanywhere.com/decode", {
+      method: "POST",
+      body: formData
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.value) {
+          detectedValue.innerText = data.value;
+          confirmArea.style.display = "block";
+          resultText.innerText = "Barcode detected";
+        } else {
+          resultText.innerText = "No barcode detected, try again";
+        }
+      })
+      .catch(err => {
+        resultText.innerText = "Server error: " + err;
+      });
   }, "image/jpeg");
 });
 
