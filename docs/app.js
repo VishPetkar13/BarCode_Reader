@@ -46,31 +46,49 @@ navigator.mediaDevices.getUserMedia({
   video: { facingMode: "environment" }
 }).then(stream => {
   video.srcObject = stream;
+
+  // Best-effort attempt at continuous autofocus.
+  // Not supported on all browsers/devices, so we ignore failures silently.
+  const track = stream.getVideoTracks()[0];
+  track.applyConstraints({ advanced: [{ focusMode: "continuous" }] }).catch(() => {});
 }).catch(err => {
   resultText.innerText = "Camera error: " + err;
 });
 
-document.getElementById("captureBtn").addEventListener("click", () => {
-  resultText.innerText = "Capturing...";
-
-  // Freeze the current video frame onto the canvas
+function captureFrame() {
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  // Convert that frame into a file html5-qrcode can decode
-  // Quality 1.0 avoids JPEG compression artifacts that can blur barcode lines
-  canvas.toBlob(blob => {
-    const file = new File([blob], "capture.jpg", { type: "image/jpeg" });
+  return new Promise(resolve => {
+    canvas.toBlob(blob => {
+      resolve(new File([blob], "capture.jpg", { type: "image/jpeg" }));
+    }, "image/jpeg", 1.0);
+  });
+}
 
-    html5QrCode.scanFile(file, false).then(decodedText => {
-      detectedValue.innerText = decodedText;
-      confirmArea.style.display = "block";
-      resultText.innerText = "Barcode detected";
-    }).catch(err => {
+async function tryDecode(attemptsRemaining) {
+  const file = await captureFrame();
+
+  try {
+    const decodedText = await html5QrCode.scanFile(file, false);
+    detectedValue.innerText = decodedText;
+    confirmArea.style.display = "block";
+    resultText.innerText = "Barcode detected";
+  } catch (err) {
+    if (attemptsRemaining > 1) {
+      resultText.innerText = "Still trying... (" + attemptsRemaining + " attempts left)";
+      setTimeout(() => tryDecode(attemptsRemaining - 1), 300);
+    } else {
       resultText.innerText = "No barcode detected, try again";
-    });
-  }, "image/jpeg", 1.0);
+    }
+  }
+}
+
+document.getElementById("captureBtn").addEventListener("click", () => {
+  resultText.innerText = "Capturing...";
+  // Small delay lets autofocus settle after the tap before the first attempt
+  setTimeout(() => tryDecode(3), 400);
 });
 
 document.getElementById("confirmYes").addEventListener("click", () => {
