@@ -51,10 +51,24 @@ navigator.mediaDevices.getUserMedia({
 });
 
 document.getElementById("captureBtn").addEventListener("click", () => {
-  // Freeze the current video frame onto the canvas
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+  // Work out where the visible scan box sits relative to the actual
+  // camera resolution, since the on-screen video is often displayed
+  // smaller/larger than its real pixel dimensions.
+  const scanBox = document.getElementById("scanBox");
+  const videoRect = video.getBoundingClientRect();
+  const boxRect = scanBox.getBoundingClientRect();
+
+  const scaleX = video.videoWidth / videoRect.width;
+  const scaleY = video.videoHeight / videoRect.height;
+
+  const sx = (boxRect.left - videoRect.left) * scaleX;
+  const sy = (boxRect.top - videoRect.top) * scaleY;
+  const sWidth = boxRect.width * scaleX;
+  const sHeight = boxRect.height * scaleY;
+
+  canvas.width = sWidth;
+  canvas.height = sHeight;
+  canvas.getContext("2d").drawImage(video, sx, sy, sWidth, sHeight, 0, 0, sWidth, sHeight);
 
   // Convert that frame into a file html5-qrcode can decode
   canvas.toBlob(blob => {

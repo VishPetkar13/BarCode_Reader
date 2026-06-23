@@ -8,21 +8,28 @@
     <main>
         <h1>Barcode Vault</h1>
         <p id="instructions">Align the barcode, hold steady, then tap Capture</p>
-
-        <video id="preview" autoplay playsinline style="width: 100%;"></video>
+        <div id="videoContainer" style="position: relative; width: 100%;">
+          <video id="preview" autoplay playsinline style="width: 100%; display: block;"></video>
+          <div id="scanBox" style="
+            position: absolute;
+            top: 35%;
+            left: 5%;
+            width: 90%;
+            height: 22%;
+            border: 3px solid red;
+            box-sizing: border-box;
+            pointer-events: none;
+          "></div>
+        </div>
         <canvas id="snapshot" style="display: none;"></canvas>
-
         <button id="captureBtn">Capture</button>
-
         <p id="result">No barcode scanned yet</p>
-
         <div id="confirmArea" style="display: none;">
           <p>Detected value: <span id="detectedValue"></span></p>
           <button id="confirmYes">Yes, that's correct</button>
           <button id="confirmRetry">Retry</button>
         </div>
     </main>
-
     <script src="app.js"></script>
   </body>
 </html>
