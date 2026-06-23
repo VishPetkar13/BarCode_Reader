@@ -7,7 +7,7 @@ function getAllItems() {
   return data ? JSON.parse(data) : [];
 }
 
-function saveItem(barcode_value, barcode_type) {
+function saveItem(barcode_value, barcode_type, user_label) {
   const items = getAllItems();
 
   // Mirror the UNIQUE constraint from the old SQLite schema
@@ -19,7 +19,7 @@ function saveItem(barcode_value, barcode_type) {
   const newItem = {
     barcode_value: barcode_value,
     barcode_type: barcode_type,
-    user_label: null,
+    user_label: user_label || null,
     scan_time: new Date().toISOString(),
     return_window: 28
   };
@@ -75,17 +75,19 @@ document.getElementById("captureBtn").addEventListener("click", () => {
 
 document.getElementById("confirmYes").addEventListener("click", () => {
   const value = detectedValue.innerText;
+  const label = document.getElementById("labelInput").value;
 
   // We don't know the exact format from a captured image the same way
   // ZXing did on desktop, so we store it generically for now.
-  const saved = saveItem(value, "UNKNOWN");
+  const saved = saveItem(value, "UNKNOWN", label);
 
   if (saved) {
-    resultText.innerText = "Saved: " + value;
+    resultText.innerText = "Saved as: " + (label || value);
   } else {
     resultText.innerText = "Already saved previously: " + value;
   }
 
+  document.getElementById("labelInput").value = "";
   confirmArea.style.display = "none";
 });
 

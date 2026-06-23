@@ -37,9 +37,19 @@
 
         <div id="confirmArea" style="display: none;">
           <p>Detected value: <span id="detectedValue"></span></p>
-          <button id="confirmYes">Yes, that's correct</button>
+          <input type="text" id="labelInput" placeholder="Store / receipt name">
+          <button id="confirmYes">Save</button>
           <button id="confirmRetry">Retry</button>
         </div>
+
+        <dialog id="labelDialog">
+          <p>Name this scan</p>
+          <p id="labelBarcodeValue" style="font-family: monospace;"></p>
+          <input type="text" id="labelInput" placeholder="Store / receipt name">
+          <br><br>
+          <button id="labelSave">Save</button>
+          <button id="labelCancel">Cancel</button>
+        </dialog>
     </main>
 
     <script src="app.js"></script>
