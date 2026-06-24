@@ -57,8 +57,13 @@ function deleteItem(barcode_value) {
 function daysRemaining(scanTimeISO, returnWindow) {
   const scanDate = new Date(scanTimeISO);
   const today = new Date();
+
+  // Strip the time component, comparing calendar dates only
+  const scanDateOnly = new Date(scanDate.getFullYear(), scanDate.getMonth(), scanDate.getDate());
+  const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
   const msPerDay = 1000 * 60 * 60 * 24;
-  const daysPassed = Math.floor((today - scanDate) / msPerDay);
+  const daysPassed = Math.round((todayOnly - scanDateOnly) / msPerDay);
   const remaining = returnWindow - daysPassed;
   return remaining > 0 ? remaining : 0;
 }

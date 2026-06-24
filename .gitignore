@@ -20,3 +20,6 @@ barcode_history.db
 # OS junk files
 .DS_Store
 Thumbs.db
+
+# Project_journey file
+docs/PROJECT_JOURNEY.md
